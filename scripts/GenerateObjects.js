@@ -6,6 +6,8 @@ var Graphics = require('./Graphics')
 var Random = require('./Random')
 var InputMap = require('./Input')
 
+// let Graphics, Random, InputMap
+
 module.exports = function (spec) {
 
   /***************************************************
@@ -93,37 +95,37 @@ module.exports = function (spec) {
         lineWidth: 2,
         speed: spec.width
       }),
-        pos: {x: spec.width / 2 - spec.paddleWidth / 2, y: spec.height - 42},
-        width: spec.paddleWidth,
-        height: 10,
-        speed: spec.width
+      pos: {x: spec.width / 2 - spec.paddleWidth / 2, y: spec.height - 42},
+      width: spec.paddleWidth,
+      height: 10,
+      speed: spec.width
       ,
-      draw: function(){
+      draw: function () {
         this.view.draw()
       },
-      toggleSize: function(fullSize){
-        if(!fullSize){
+      toggleSize: function (fullSize) {
+        if (!fullSize) {
           this.width = spec.paddleWidth / 2
         }
-        else{
+        else {
           this.width = spec.paddleWidth
         }
         this.view.setWidth(this.width)
       },
-      update: function(elapsedTime){
-        if(InputMap.isDown(InputMap.LEFT)){
+      update: function (elapsedTime) {
+        if (InputMap.isDown(InputMap.LEFT)) {
           this.pos.x -= this.speed * elapsedTime / 1000
-          if(this.pos.x < 0){
+          if (this.pos.x < 0) {
             this.pos.x = 0
           }
           this.view.update(elapsedTime)
         }
-        if(InputMap.isDown(InputMap.RIGHT)){
+        if (InputMap.isDown(InputMap.RIGHT)) {
           this.pos.x += this.speed * elapsedTime / 1000
-          if(this.pos.x + this.width > spec.width){
+          if (this.pos.x + this.width > spec.width) {
             this.pos.x = spec.width - this.width
           }
-          this.view.update(elapsedTime,false)
+          this.view.update(elapsedTime, false)
         }
       }
     }
@@ -140,7 +142,7 @@ module.exports = function (spec) {
     }
   }
 
-  function Scoreboard() {
+  function Scoreboard(numLives, score, time) {
     return {
       board: Graphics.Rectangle({
         color: "rgb(120,188,188)",
@@ -149,7 +151,7 @@ module.exports = function (spec) {
         height: 100,
         lineWidth: 5
       }),
-      score: Graphics.Text({
+      score: score || Graphics.Text({
         font: "54px myFont",
         color: "rgb(200,200,30)",
         stroke: "rgb(200,200,30)",
@@ -157,7 +159,7 @@ module.exports = function (spec) {
         pos: {x: 45 + 8, y: 15 + 25},
         text: "000"
       }),
-      time: Graphics.Text({
+      time: time || Graphics.Text({
         font: "54px myFont",
         color: "rgb(200,200,30)",
         stroke: "rgb(200,200,30)",
@@ -165,14 +167,38 @@ module.exports = function (spec) {
         pos: {x: spec.width / 2, y: 15 + 25},
         text: "0:00"
       }),
-      lives: generateLives(),
+      lives: generateLives(numLives),
       draw: function () {
         this.board.draw()
         this.score.draw()
         this.time.draw()
-        this.lives.draw()
+        if (this.lives.lives.length > 0) {
+          this.lives.draw()
+        }
       }
     }
+  }
+
+  function ParticleSystem(){
+    var that = {}
+    that.particles = []
+    that.ParticleEmitter = function(spec){
+
+      for(let i = 0; i < 20; i++){
+        that.particles.push(Graphics.Circle({
+          center: {x: Random.nextGaussian(spec.pos.x + spec.height / 2, spec.height / 10), y: Random.nextGaussian(spec.pos.y + spec.width/2, spec.width/10)},
+          radius: Random.nextGaussian(5,1),
+          color: "rgb(60,60,60)",
+          speed: spec.width / 2,
+          direction: direction
+        }))
+      }
+
+
+    }
+
+
+    return that;
   }
 
   /*****************************************************
@@ -216,10 +242,10 @@ module.exports = function (spec) {
     return row
   }
 
-  function generateLives() {
+  function generateLives(num) {
     var that = {}
     that.lives = []
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < num; i++) {
       that.lives.push(Graphics.Rectangle({
         color: "rgba(255,120,120,1)",
         pos: {x: spec.width - spec.paddleWidth - 15, y: i * 20 + 30},
@@ -237,8 +263,10 @@ module.exports = function (spec) {
   }
 
   function genNormalVector() {
-    var vector = {x: Random.nextDouble() - .5, y: Random.nextDouble() * -1}
-    normalize(vector)
+    do {
+      var vector = {x: Random.nextDouble() - .5, y: Random.nextDouble() * -1}
+      normalize(vector)
+    } while (Math.abs(vector.x) < .2 || Math.abs(vector.x) > .8)
     return vector
   }
 

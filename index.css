@@ -5,7 +5,11 @@
 }
 
 body{
+    font-family: "myFont", "Comic Sans MS", serif;
+    font-size: 1.5em;
+    font-variant: small-caps;
     background-color: #000012;
+    color: white;
 }
 
 div{
@@ -14,5 +18,30 @@ div{
 
 canvas{
     display: block;
-    margin: 100px auto;
+    margin: 4vh auto;
+}
+
+h1{
+    text-align: center;
+    outline-color: yellow;
+}
+
+#menu{
+    width: 50%;
+    margin: 0 auto;
+    align-content: center;
+}
+
+button{
+    display: block;
+    margin: 5px auto;
+    font-family: "myFont", "Comic Sans MS", serif;
+}
+
+#score-table{
+    margin: 10px auto;
+}
+
+#fps{
+    float:right;
 }
