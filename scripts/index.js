@@ -2,7 +2,7 @@
  * Created by Steven on 3/13/2017.
  */
 
-var Game
+var Game, InputMap
 var root
 
 window.onload = function(){
@@ -13,7 +13,7 @@ window.onload = function(){
 
 function playGame(){
   m.mount(root, Canvas)
-  Game.initialize(showMenu)
+  Game.initialize(showMenu, showPauseMenu)
 }
 
 function showScores(){
@@ -30,9 +30,23 @@ function showMenu(){
   m.mount(root, Menu)
 }
 
+function resumeGame(){
+  document.getElementById("game-canvas").setAttribute("class","")
+  m.mount(document.getElementById("pause-div"),null)
+  Game.unpause()
+}
+
+function showPauseMenu(){
+  m.mount(document.getElementById("pause-div"), PauseMenu)
+  document.getElementById("game-canvas").setAttribute("class","hidden")
+}
+
 var Canvas = {
   view: function(){
-    return m("canvas[id='game-canvas']")
+    return m("div",[
+      m("canvas[id='game-canvas']"),
+      m("div[id=pause-div]")
+      ])
   }
 }
 
@@ -43,6 +57,15 @@ var Menu = {
       m("button",{onclick:playGame},"Play Game"),
       m("button",{onclick:showScores},"High Scores"),
       m("button",{onclick:showCredits},"Credits")])
+  }
+}
+
+var PauseMenu = {
+  view: function(){
+    return m("div[id='menu']",[
+      m("h1[id='title']","BREAKOUT!"),
+      m("button",{onclick:resumeGame},"Resume Game"),
+      m("button",{onclick:showMenu},"Quit Game"),])
   }
 }
 

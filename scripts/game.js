@@ -38,6 +38,9 @@
     var currentRoundHits = 0
     var fullSize = true
     var retFunc
+    var pauseFunc
+    var paused = false
+
     /*************************************************
      * FPS Variables and functions
      *************************************************/
@@ -58,10 +61,10 @@
     /*************************************************
      * Game Functions
      *************************************************/
-    that.initialize = function (retFunction) {
+    that.initialize = function (retFunction, pauseFunction) {
       // Provided for menuing
       retFunc = retFunction
-
+      pauseFunc = pauseFunction
       // Setup Keyboard Input
       window.addEventListener('keyup', function (event) {
         InputMap.onKeyup(event);
@@ -75,6 +78,7 @@
       initializeObjects()
       gameRunning = false
       gameOver = false
+      paused = false
       previousTime = performance.now()
 
       // Setup FPS Data
@@ -106,17 +110,22 @@
         }
       }
       gameObjects.Banner = Model.Banner()
+      gameObjects.ParticleSystem = Model.ParticleSystem()
     }
 
     function newLife() {
       gameObjects.Paddle = Model.Paddle()
       gameObjects.Balls.balls = [Model.Ball()]
       gameObjects.Banner = Model.Banner()
+      gameObjects.ParticleSystem = Model.ParticleSystem()
       timeBeforeStart = 3000
       currentRoundHits = 0
       currentRoundScore = 0
       fullSize = true
       gameObjects.Paddle.toggleSize(true)
+      for(let i = 0; i < gameObjects.Balls.balls.length; i++){
+        gameObjects.Balls.balls[i].currentRoundHits = 0
+      }
     }
 
     function newRound(){
@@ -133,10 +142,16 @@
     }
 
     function gameLoop(currentTime) {
-      update(currentTime)
-      render()
-      previousTime = currentTime
-      requestAnimationFrame(gameLoop)
+      if(!paused) {
+        update(currentTime)
+        render()
+        previousTime = currentTime
+        if(InputMap.isDown(InputMap.ESC)){
+          paused = true
+          pauseFunc()
+        }
+        requestAnimationFrame(gameLoop)
+      }
     }
 
     function update(currentTime) {
@@ -190,6 +205,7 @@
         if(score < 10) scoreString += "0"
         scoreString += score
         gameObjects.Scoreboard.score.setText(scoreString)
+        gameObjects.ParticleSystem.update(elapsedTime)
         if(!gameRunning || gameOver){
           if(!gameOver) {
             newLife()
@@ -226,21 +242,17 @@
           if (detectCollision(ball, gameObjects.PlayingBoard.rows[i].bricks[j])) {
             score += scoreArray[gameObjects.PlayingBoard.rows[i].bricks[j].model.row]
             currentRoundScore += scoreArray[gameObjects.PlayingBoard.rows[i].bricks[j].model.row]
-            currentRoundHits++
-            if(currentRoundScore >= 100){
-              currentRoundScore-=100
-              gameObjects.Balls.balls.push(Model.Ball())
-              var newBall = gameObjects.Balls.balls[gameObjects.Balls.balls.length - 1]
-              newBall.setPosition(gameObjects.Paddle.pos.x + gameObjects.Paddle.width / 2, gameObjects.Paddle.pos.y, newBall.direction.x,newBall.direction.y)
-            }
-            if(fullSize && (gameObjects.PlayingBoard.rows[i].bricks[j].model.row == 0 || gameObjects.PlayingBoard.rows[i].bricks[j].model.row == 1)){
+            ball.currentRoundHits++
+
+            if(fullSize && (gameObjects.PlayingBoard.rows[i].bricks[j].model.row == 0 /*|| gameObjects.PlayingBoard.rows[i].bricks[j].model.row == 1*/)){
               fullsize = !fullSize
               gameObjects.Paddle.toggleSize(false)
             }
+            gameObjects.ParticleSystem.ParticleEmitter(gameObjects.PlayingBoard.rows[i].bricks[j], ball)
             gameObjects.PlayingBoard.rows[i].bricks.splice(j, 1)
             j--
             cont = false
-            switch (currentRoundHits) {
+            switch (ball.currentRoundHits) {
               case 4:
                 ball.setSpeed(5 * width / 8);
                 break;
@@ -256,12 +268,20 @@
               default:
                 break;
             }
+
           }
         }
         if (gameObjects.PlayingBoard.rows[i].bricks.length == 0) {
           score += 25
+          currentRoundScore += 25
           gameObjects.PlayingBoard.rows.splice(i, 1)
           i--
+        }
+        if(currentRoundScore >= 100){
+          currentRoundScore-=100
+          gameObjects.Balls.balls.push(Model.Ball())
+          var newBall = gameObjects.Balls.balls[gameObjects.Balls.balls.length - 1]
+          newBall.setPosition(gameObjects.Paddle.pos.x + gameObjects.Paddle.width / 2, gameObjects.Paddle.pos.y, newBall.direction.x,newBall.direction.y)
         }
       }
 
@@ -387,6 +407,15 @@
         document.getElementById("fps").innerHTML = ""
         retFunc()
       },2000)
+    }
+
+    that.unpause = function(){
+      paused = false
+      gameObjects.Banner = Model.Banner()
+      timeBeforeStart = 3000
+      gameRunning = false
+      previousTime = performance.now()
+      requestAnimationFrame(gameLoop)
     }
 
     return that

@@ -6,10 +6,10 @@ var Graphics = require('./Graphics')
 var Random = require('./Random')
 var InputMap = require('./Input')
 
-// let Graphics, Random, InputMap
+
 
 module.exports = function (spec) {
-
+  var colors = ["green", "blue", "orange", "yellow"]
   /***************************************************
    * Generator Functions for the Objects in the game
    ***************************************************/
@@ -30,6 +30,7 @@ module.exports = function (spec) {
       radius: 8,
       speed: spec.width / 2,
       direction: direction,
+      currentRoundHits: 0,
       view: Graphics.Circle({
         center: {x: spec.width / 2, y: spec.height - 50},
         radius: 8,
@@ -156,7 +157,7 @@ module.exports = function (spec) {
         color: "rgb(200,200,30)",
         stroke: "rgb(200,200,30)",
         rotation: 0,
-        pos: {x: 45 + 8, y: 15 + 25},
+        pos: {x: 45 + 20, y: 15 + 25},
         text: "000"
       }),
       time: time || Graphics.Text({
@@ -182,21 +183,46 @@ module.exports = function (spec) {
   function ParticleSystem(){
     var that = {}
     that.particles = []
-    that.ParticleEmitter = function(spec){
+    that.ParticleEmitter = function(spec,ball){
 
-      for(let i = 0; i < 20; i++){
+      for(let i = 0; i < 25; i++){
+        let dir = genNormalVector()
+        dir = {x: ball.direction.x + dir.x, y: ball.direction.y - dir.y}
+        normalize(dir)
+        let r = Random.nextGaussian(5,1)
         that.particles.push(Graphics.Circle({
-          center: {x: Random.nextGaussian(spec.pos.x + spec.height / 2, spec.height / 10), y: Random.nextGaussian(spec.pos.y + spec.width/2, spec.width/10)},
-          radius: Random.nextGaussian(5,1),
-          color: "rgb(60,60,60)",
-          speed: spec.width / 2,
-          direction: direction
+          center: {x: Random.nextRange(spec.model.pos.x, spec.model.pos.x + spec.model.height), y: Random.nextRange(spec.model.pos.y, spec.model.pos.y + spec.model.width)},
+          radius: r,
+          color: colors[Math.floor(spec.model.row/2)],
+          speed: ball.speed / r * 2,
+          direction: dir
         }))
+        that.particles[that.particles.length - 1].timeLeft = Random.nextRange(500, 1000)
       }
-
-
     }
 
+    that.update = function(elapsedTime){
+      if(that.particles.length > 30){
+        console.log(that.particles.length)
+      }
+      for(let i = 0; i < that.particles.length; i++){
+        that.particles[i].timeLeft -= elapsedTime
+        if(that.particles[i].timeLeft > 1000){
+          console.log(i,":", that.particles[i].timeLeft)
+        }
+        that.particles[i].update(elapsedTime)
+        if(that.particles[i].timeLeft <= 0){
+          that.particles.splice(i,1)
+          i--
+        }
+      }
+    }
+
+    that.draw = function(){
+      for(let i = 0; i < that.particles.length; i++){
+        that.particles[i].draw()
+      }
+    }
 
     return that;
   }
@@ -205,7 +231,6 @@ module.exports = function (spec) {
    * Helper Functions to assist the generator functions
    *****************************************************/
   function generateRows() {
-    var colors = ["green", "blue", "orange", "yellow"]
     var rows = []
     for (let i = 0; i < 8; ++i) {
       rows.push(generateRow(colors[Math.floor(i / 2)], i))
@@ -283,6 +308,7 @@ module.exports = function (spec) {
     Banner: Banner,
     normalize: normalize,
     Paddle: Paddle,
+    ParticleSystem: ParticleSystem,
     PlayingBoard: PlayingBoard,
     Scoreboard: Scoreboard
   }

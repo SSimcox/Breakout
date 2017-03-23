@@ -1,0 +1,27 @@
+{
+  "name": "Breakout",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bundle.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bundle": "watchify scripts/index.js -o bundle.js -d -v",
+    "minify": "uglifyjs -c -m --mangle-props true bundle.js -o bundle-min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SSimcox/Breakout.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SSimcox/Breakout/issues"
+  },
+  "homepage": "https://github.com/SSimcox/Breakout#readme",
+  "dependencies": {
+    "browserify": "^14.1.0",
+    "uglify-js": "github:mishoo/UglifyJS2#harmony",
+    "watchify": "^3.9.0"
+  }
+}

@@ -31,6 +31,8 @@ let InputMap = {
   Y: 89,
   B: 66,
 
+  ESC: 27,
+
   isDown: function (keyCode) {
     return this._pressed[keyCode];
   },

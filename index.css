@@ -43,5 +43,11 @@ button{
 }
 
 #fps{
-    float:right;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+.hidden{
+    display:none;
 }
